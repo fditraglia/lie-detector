@@ -46,9 +46,7 @@ window.addEventListener('hashchange', showMode);
 
 // ---------------------------------------------------------------- One at a time
 
-const deck = $('deck');
-const drawn = $('drawn');
-const flipper = $('flipper');
+const portrait = $('portrait-inner');
 const frontFace = $('front-face');
 const backFace = $('back-face');
 const drawBtn = $('draw-btn');
@@ -67,39 +65,59 @@ function stampHTML(fail) {
   return `<span class="stamp ${fail ? 'fail' : 'pass'}">${fail ? 'FAIL' : 'PASS'}</span>`;
 }
 
+// A jittery polygraph trace; a failed test gets a few large spikes. Purely
+// decorative: the result has already been drawn.
+function tracePath(fail) {
+  const spikes = fail ? [8 + randomInt(8), 22 + randomInt(8), 36 + randomInt(8)] : [];
+  let d = '';
+  for (let i = 0; i <= 50; i++) {
+    let y = 30 + (Math.random() - 0.5) * 16;
+    if (spikes.includes(i)) y = spikes.indexOf(i) % 2 ? 56 : 4;
+    d += `${i ? 'L' : 'M'}${i * 6},${y.toFixed(1)}`;
+  }
+  return d;
+}
+
+async function drawTrace(d) {
+  const trace = $('trace');
+  trace.setAttribute('d', d);
+  const len = trace.getTotalLength();
+  trace.style.transition = 'none';
+  trace.style.strokeDasharray = len;
+  trace.style.strokeDashoffset = len;
+  void trace.getBoundingClientRect();
+  trace.style.transition = `stroke-dashoffset ${reduceMotion.matches ? 0 : 1.2}s linear`;
+  trace.style.strokeDashoffset = 0;
+  await wait(1250);
+}
+
 async function pickEmployee() {
   drawBtn.disabled = true;
-  // On a phone the setup can leave the card or button partly off screen; bring both into view.
+  // On a phone the setup can leave the report or button partly off screen; bring both into view.
   const stageTop = panels.one.getBoundingClientRect().top;
   if (stageTop < 0 || drawBtn.getBoundingClientRect().bottom > window.innerHeight) {
     panels.one.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
   }
-  drawn.hidden = true;
-  deck.hidden = false;
-  drawStatus.textContent = 'Picking…';
-  restart(deck, 'shuffling');
-  await wait(950);
-  deck.classList.remove('shuffling');
 
   current = testEmployee();
-  flipper.classList.add('no-transition');
-  flipper.classList.remove('flipped');
-  void flipper.offsetWidth;
-  flipper.classList.remove('no-transition');
-
-  const stamp = $('stamp');
-  stamp.className = `stamp ${current.fail ? 'fail' : 'pass'}`;
-  stamp.textContent = current.fail ? 'FAIL' : 'PASS';
-  $('employee-no').textContent = `Employee no. ${1000 + randomInt(9000)}`;
-  const who = current.thief ? 'thief' : 'innocent';
-  $('truth-img').src = IMAGES[who];
-  $('truth-name').textContent = current.thief ? 'Thief' : 'Innocent';
+  portrait.classList.add('no-transition');
+  portrait.classList.remove('flipped');
+  void portrait.offsetWidth;
+  portrait.classList.remove('no-transition');
+  $('truth-img').src = IMAGES[current.thief ? 'thief' : 'innocent'];
   frontFace.removeAttribute('aria-hidden');
   backFace.setAttribute('aria-hidden', 'true');
 
-  deck.hidden = true;
-  drawn.hidden = false;
-  restart(drawn, 'dealt');
+  const stamp = $('stamp');
+  stamp.hidden = true;
+  $('employee-no').textContent = `Employee no. ${1000 + randomInt(9000)}`;
+  drawStatus.textContent = 'Testing…';
+  await drawTrace(tracePath(current.fail));
+
+  stamp.className = `stamp ${current.fail ? 'fail' : 'pass'}`;
+  stamp.textContent = current.fail ? 'FAIL' : 'PASS';
+  stamp.hidden = false;
+  restart(stamp, 'slam');
   // Only an employee who fails the test goes on to have the truth revealed.
   if (current.fail) {
     drawStatus.textContent = 'This employee failed the test.';
@@ -115,7 +133,7 @@ async function pickEmployee() {
 }
 
 function revealTruth() {
-  flipper.classList.add('flipped');
+  portrait.classList.add('flipped');
   frontFace.setAttribute('aria-hidden', 'true');
   backFace.removeAttribute('aria-hidden');
   drawStatus.textContent = current.thief ? 'This employee is a thief.' : 'This employee is innocent.';
@@ -264,14 +282,9 @@ function renderLatest() {
   const result = $('latest-result');
   const truth = $('latest-truth');
   if (!sim.last) {
-    for (const el of [result, truth]) {
-      el.classList.remove('filled');
-      el.innerHTML = '<span>?</span>';
-    }
+    for (const el of [result, truth]) el.innerHTML = '<span class="placeholder">?</span>';
     return;
   }
-  result.classList.add('filled');
-  truth.classList.add('filled');
   result.innerHTML = stampHTML(sim.last.fail);
   truth.innerHTML = `<img src="${IMAGES[sim.last.thief ? 'thief' : 'innocent']}" alt="">`;
 }

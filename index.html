@@ -42,22 +42,21 @@
 <main>
   <section id="one" class="draw" role="tabpanel" aria-labelledby="tab-one">
     <div class="stage">
-      <div class="deck" id="deck" aria-hidden="true">
-        <div class="card blank"><span>?</span></div>
-        <div class="card blank"><span>?</span></div>
-        <div class="card blank"><span>?</span></div>
-      </div>
-      <div class="drawn" id="drawn" hidden>
-        <div class="flipper" id="flipper">
-          <div class="card front report" id="front-face">
-            <p class="report-head">Lie detector result</p>
-            <p class="stamp" id="stamp">FAIL</p>
-            <p class="report-foot" id="employee-no"></p>
+      <div class="report">
+        <div class="portrait">
+          <div class="portrait-inner" id="portrait-inner">
+            <div class="portrait-face front" id="front-face">
+              <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="25" r="12"/><path d="M9 64c0-14 10.3-22 23-22s23 8 23 22z"/></svg>
+            </div>
+            <div class="portrait-face back" id="back-face" aria-hidden="true">
+              <img id="truth-img" src="img/ninja.png" alt="">
+            </div>
           </div>
-          <figure class="card back truth" id="back-face" aria-hidden="true">
-            <img id="truth-img" src="img/ninja.png" alt="">
-            <figcaption id="truth-name"></figcaption>
-          </figure>
+        </div>
+        <p class="report-name" id="employee-no">No employee picked yet</p>
+        <div class="strip">
+          <svg viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"><path id="trace" d="M0,30 H300"/></svg>
+          <p class="stamp" id="stamp" hidden></p>
         </div>
       </div>
     </div>
@@ -90,11 +89,11 @@
 
       <div class="latest" aria-hidden="true">
         <figure class="mini">
-          <div class="card small" id="latest-result"><span>?</span></div>
+          <div class="slip" id="latest-result"><span class="placeholder">?</span></div>
           <figcaption>Test result</figcaption>
         </figure>
         <figure class="mini">
-          <div class="card small" id="latest-truth"><span>?</span></div>
+          <div class="disc" id="latest-truth"><span class="placeholder">?</span></div>
           <figcaption>The truth</figcaption>
         </figure>
       </div>
