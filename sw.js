@@ -1,6 +1,6 @@
 // Serve from the cache immediately and refresh it in the background, so the
 // page loads instantly on a slow classroom connection and still works offline.
-const CACHE = 'lie-detector-v1';
+const CACHE = 'lie-detector-v2';
 const ASSETS = ['./', 'index.html', 'style.css', 'app.js', 'img/ninja.png', 'img/angel.png', 'img/LICENSE-fluent-emoji.txt'];
 
 self.addEventListener('install', event => {
