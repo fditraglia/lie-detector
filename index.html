@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The lie detector</title>
+<meta name="description" content="A classroom demonstration of Bayes' rule and the base rate fallacy.">
+<meta name="theme-color" content="#1d4a37">
+<link rel="icon" href="img/ninja.png" type="image/png">
+<link rel="preload" href="img/ninja.png" as="image">
+<link rel="preload" href="img/angel.png" as="image">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <h1>The lie detector</h1>
+  <p class="setup-lead">At a store, one employee in ten is stealing merchandise.</p>
+  <ul class="staff" aria-label="Ten employees: nine innocent, one thief">
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/ninja.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+    <li><img src="img/angel.png" alt=""></li>
+  </ul>
+  <p class="setup-lead">The managers want to fire the thieves, but their only tool is a lie detector that is 80% accurate:</p>
+  <ul class="accuracy">
+    <li><img src="img/ninja.png" alt=""><span>A thief fails the test 80% of the time.</span></li>
+    <li><img src="img/angel.png" alt=""><span>An innocent employee passes the test 80% of the time.</span></li>
+  </ul>
+  <p class="premise">An employee fails the test. What is the probability that this employee is a thief?</p>
+  <nav class="modes" role="tablist" aria-label="Mode">
+    <button type="button" role="tab" id="tab-one" aria-controls="one" aria-selected="true">One at a time</button>
+    <button type="button" role="tab" id="tab-many" aria-controls="many" aria-selected="false">Many at once</button>
+  </nav>
+</header>
+
+<main>
+  <section id="one" class="draw" role="tabpanel" aria-labelledby="tab-one">
+    <div class="stage">
+      <div class="deck" id="deck" aria-hidden="true">
+        <div class="card blank"><span>?</span></div>
+        <div class="card blank"><span>?</span></div>
+        <div class="card blank"><span>?</span></div>
+      </div>
+      <div class="drawn" id="drawn" hidden>
+        <div class="flipper" id="flipper">
+          <div class="card front report" id="front-face">
+            <p class="report-head">Lie detector result</p>
+            <p class="stamp" id="stamp">FAIL</p>
+            <p class="report-foot" id="employee-no"></p>
+          </div>
+          <figure class="card back truth" id="back-face" aria-hidden="true">
+            <img id="truth-img" src="img/ninja.png" alt="">
+            <figcaption id="truth-name"></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <p class="status" id="draw-status" aria-live="polite">Pick an employee at random and give them the test.</p>
+    <button type="button" class="primary" id="draw-btn">Pick an employee</button>
+
+    <div class="tally">
+      <h2>Your tally</h2>
+      <dl>
+        <div><dt>Rounds</dt><dd id="t-rounds">0</dd></div>
+        <div><dt>Failed the test</dt><dd id="t-fail">0</dd></div>
+        <div><dt>Failed and a thief</dt><dd id="t-thief">0</dd></div>
+      </dl>
+      <button type="button" class="text-btn" id="tally-reset">Reset tally</button>
+    </div>
+  </section>
+
+  <section id="many" class="simulate" role="tabpanel" aria-labelledby="tab-many" hidden>
+    <div class="sim-left">
+      <div class="controls">
+        <span class="controls-label" id="chips-label">Test</span>
+        <div class="chips" role="group" aria-labelledby="chips-label">
+          <button type="button" class="chip" data-k="1" aria-label="Test 1 employee">1</button>
+          <button type="button" class="chip" data-k="10" aria-label="Test 10 employees">10</button>
+          <button type="button" class="chip" data-k="100" aria-label="Test 100 employees">100</button>
+          <button type="button" class="chip" data-k="1000" aria-label="Test 1,000 employees">1,000</button>
+        </div>
+        <button type="button" class="text-btn" id="sim-reset">Start over</button>
+      </div>
+
+      <div class="latest" aria-hidden="true">
+        <figure class="mini">
+          <div class="card small" id="latest-result"><span>?</span></div>
+          <figcaption>Test result</figcaption>
+        </figure>
+        <figure class="mini">
+          <div class="card small" id="latest-truth"><span>?</span></div>
+          <figcaption>The truth</figcaption>
+        </figure>
+      </div>
+
+      <div class="estimate" aria-live="polite">
+        <p class="fraction" id="fraction"><span class="frac"><span id="f-num">0</span><span id="f-den">0</span></span><span id="f-dec"></span></p>
+        <p class="summary" id="summary">No employees tested yet. Choose how many to test.</p>
+      </div>
+    </div>
+
+    <div class="sim-right">
+      <figure class="sheet">
+        <h2>Estimate after each failed test</h2>
+        <svg id="chart" role="img" aria-label="Running estimate of the probability that an employee who fails the test is a thief"></svg>
+        <figcaption>The fraction of employees who failed the test so far who are thieves.</figcaption>
+      </figure>
+
+      <figure class="sheet">
+        <div class="sheet-head">
+          <h2>Every employee tested so far</h2>
+          <label class="toggle"><input type="checkbox" id="group"> Group by outcome</label>
+        </div>
+        <canvas id="waffle" role="img" aria-label="One square per employee tested, colored by outcome"></canvas>
+        <figcaption>
+          <ul class="legend">
+            <li><span class="swatch thief"></span>Failed the test, thief <b id="l-thief">0</b></li>
+            <li><span class="swatch innocent"></span>Failed the test, innocent <b id="l-innocent">0</b></li>
+            <li><span class="swatch void"></span>Passed the test, so the employee doesn’t count <b id="l-void">0</b></li>
+          </ul>
+          <span id="waffle-note"></span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <details class="sheet answer" id="answer">
+      <summary>Reveal the answer</summary>
+      <p>The tempting answer is 0.8, because the test is 80% accurate. That answer ignores the base rate: only one employee in ten is a thief, so most of the employees who fail the test are innocent people caught by the test’s mistakes.</p>
+      <p>Picture 100 employees. The top row holds the 10 thieves, and the other nine rows hold the 90 innocent employees. The highlighted employees are the ones who fail the test.</p>
+      <div class="grid100" id="grid100" role="img" aria-label="100 employees: 10 thieves, 8 of whom fail the test, and 90 innocent employees, 18 of whom fail the test"></div>
+      <p>The test catches 8 of the 10 thieves. It also wrongly fails 2 in every 10 innocent employees, which is 18 of the 90. So 26 employees fail the test, and only 8 of them are thieves. The probability that an employee who fails the test is a thief is 8/26 = 4/13, or about 0.31.</p>
+      <p>In symbols, let <i>T</i> be the event that the employee is a thief and <i>F</i> the event that the employee fails the test. By Bayes’ rule,</p>
+      <p class="formula"><span><i>P</i>(<i>T</i> | <i>F</i>)</span> <span>=</span> <span class="frac"><span><i>P</i>(<i>F</i> | <i>T</i>) <i>P</i>(<i>T</i>)</span><span><i>P</i>(<i>F</i>)</span></span> <span>=</span> <span class="frac"><span>0.8 × 0.1</span><span>0.8 × 0.1 + 0.2 × 0.9</span></span> <span>=</span> <span class="frac"><span>0.08</span><span>0.26</span></span> <span>≈ 0.31.</span></p>
+    </details>
+  </section>
+</main>
+
+<footer class="colophon">
+  <p>A classroom demonstration by <a href="https://ditraglia.com">Frank DiTraglia</a>.</p>
+  <p>Emoji artwork from Microsoft’s <a href="https://github.com/microsoft/fluentui-emoji">Fluent Emoji</a>, used under the <a href="img/LICENSE-fluent-emoji.txt">MIT License</a>.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
